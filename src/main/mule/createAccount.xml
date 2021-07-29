@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="67282955-4039-40be-b3b0-60caf9de0bb1" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="integration-laras" />
+	</db:config>
+	<flow name="createAccountFlow" doc:id="80a84732-716f-429e-814f-11e309e864bc" >
+		<logger level="INFO" doc:name="Logger" doc:id="ba2e677d-4608-4028-ad56-41179daa18e7" message="Payload is recieved...................#[payload]"/>
+		<db:insert doc:id="b16eb53b-f819-4b6d-8392-39c861a63e61" config-ref="Database_Config">
+			<db:sql ><![CDATA[insert into Account (name, phone, email)
+values (:name, :phone, :email)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{name:payload.name,
+ phone:payload.mobileNo,
+ email:payload.emailId
+}]]]></db:input-parameters>
+		</db:insert>
+		<logger level="INFO" doc:name="Logger" doc:id="6fb2dea5-ee49-4878-babc-2a5109e47b99" message="Response from target system.....................#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="e6814a36-4403-4115-bb03-0240eae727aa" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Status_Code:200,
+	Message:"Account created Successfully"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="6a900bb4-f990-4e4e-93f2-2d3977e00a83" message="Transformed Message..............#[payload] "/>
+	</flow>
+</mule>

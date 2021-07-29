@@ -1,0 +1,44 @@
+#%RAML 1.0
+title: accountApi
+/createAccount:
+  post:
+    body:
+      application/json:
+        example:
+          {
+            "name":"Lakshmi",
+            "mobileNo":"9999999999",
+            "emailId":"lakshmi@gmail.com"
+          }
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              {
+                StatusCode:200,
+                Message:"Account Created Successfully"
+              }
+
+/accountDetails:
+  get:
+    queryParameters:
+     accountId:
+       example:
+        '1001'
+    responses:
+      200:
+        body:
+          application/json:
+             example:
+                       {
+                            "accountId": 1019,
+                            "dateOfBirth": null,
+                            "gender": null,
+                            "phone": "9999999999",
+                            "name": "Lakshmi",
+                            "email": "lakshmi@gmail.com"
+                        }              
+                                                
+                      
+                    

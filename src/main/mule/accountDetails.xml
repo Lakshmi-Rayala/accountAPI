@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<db:config name="Database_Config1" doc:name="Database Config" doc:id="c645dfc2-1347-4947-88e4-44729f426bf4" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="integration-laras" />
+	</db:config>
+	<flow name="accountDetailsFlow" doc:id="3626b2d3-93e8-4d99-a709-affaed5b95d1" >
+		<logger level="INFO" doc:name="Logger" doc:id="cfcf8b14-4996-441a-859c-809ecc3e2a8d" message="Request recieved from the source........#[attributes]"/>
+		<db:select doc:name="Select" doc:id="6bca7d5e-1551-4cf8-862a-b1f3dc79a421" config-ref="Database_Config1">
+			<db:sql ><![CDATA[select * from Account where accountId=:acc]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{acc:attributes.queryParams.accountId}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="8ce1863a-38ca-479e-a771-57740aac5e82" >
+			<when expression="#[sizeOf(payload)&gt;0]">
+				<ee:transform doc:name="Transform Message" doc:id="3571a806-5759-49ed-8333-47409b592b12" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Raise error" doc:id="229da2ee-a387-40b8-b1bc-dab857cebc0d" type="ACC:INVALID_ACCOUNT_ID" description="invalid account id"/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="57b90067-8dbc-444c-ab5f-a2bdc33463d0" message="Response .............#[payload]"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="0883acc9-6e0b-499c-a555-d6ff54d875d2" type="ACC:INVALID_ACCOUNT_ID">
+				<ee:transform doc:name="Transform Message" doc:id="b12beb2f-06c4-47ee-b6d9-dc1953fd02e4" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	StatusCode:400,
+	Message:error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c1e27fe4-0a32-44c5-aa22-9338f1bde44f" type="DB:CONNECTIVITY">
+				<ee:transform doc:name="Transform Message" doc:id="669cbd40-02b8-4c43-8205-09d27c16cb3c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	StatusCode:500,
+	Message:"Data server is down"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>
