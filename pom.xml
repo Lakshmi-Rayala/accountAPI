@@ -42,10 +42,17 @@
 			      <workers>1</workers>
 			      <workerType>MICRO</workerType>
 			      <objectStoreV2>true</objectStoreV2>
-			     
+			      <properties>
+			        <key>value</key>
+			      </properties>
 			    </cloudHubDeployment>
 				
-				<classifier>mule-application</classifier>
+				<sharedLibraries>
+                        <sharedLibrary>
+                            <groupId>com.mycompany</groupId>
+                            <artifactId>mysql-connector-java-8.0.11</artifactId>
+                        </sharedLibrary>
+                    </sharedLibraries>
                 </configuration>
 			</plugin>
 		</plugins>
